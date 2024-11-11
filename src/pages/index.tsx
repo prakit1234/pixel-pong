@@ -1,18 +1,29 @@
-import Head from 'next/head';
-import Pong from '../components/Pong'; // Ensure this path is correct
-import styles from '../styles/Home.module.css'; // Ensure this path is correct
+// pages/index.tsx
 
-const Home: React.FC = () => {
+import { NextPage } from 'next';
+import Head from 'next/head';
+import Pong from '../components/pong';
+import styles from '../styles/home.module.css';
+
+const Home: NextPage = () => {
     return (
         <div className={styles.container}>
             <Head>
-                <title>Pong Game</title>
-                <meta name="description" content="A simple Pong game built with Next.js" />
+                <title>Pixel Pong</title>
+                <meta name="description" content="Play the Pixel Pong game" />
                 <link rel="icon" href="/favicon.ico" />
             </Head>
+
             <main className={styles.main}>
-                <h1 className={styles.title}>Pong Game</h1>
-                <Pong />
+                <h1 className={styles.title}>Pixel Pong</h1>
+                <p className={styles.description}>
+                    Enjoy a classic game of Pong, reimagined with pixel style!
+                </p>
+                
+                {/* Game canvas */}
+                <div className={styles.canvas}>
+                    <Pong />
+                </div>
             </main>
         </div>
     );
