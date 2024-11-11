@@ -9,16 +9,19 @@ const Pong: React.FC = () => {
     const [isGameReady, setIsGameReady] = useState(false);
 
     useEffect(() => {
-        // Load images
-        const paddleImg = new Image();
-        paddleImg.src = '/images/paddle.png';
-        paddleImg.onload = () => setPaddleImage(paddleImg);
+        const loadImages = () => {
+            const paddleImg = new Image();
+            paddleImg.src = '/images/paddle.png';
+            paddleImg.onload = () => setPaddleImage(paddleImg);
 
-        const bgImg = new Image();
-        bgImg.src = '/images/background.jpg';
-        bgImg.onload = () => setBackgroundImage(bgImg);
+            const bgImg = new Image();
+            bgImg.src = '/images/background.jpg';
+            bgImg.onload = () => setBackgroundImage(bgImg);
+        };
+        loadImages();
+    }, []);
 
-        // Load sounds
+    useEffect(() => {
         const hitSoundInstance = new Audio('/sounds/hit.mp3');
         const scoreSoundInstance = new Audio('/sounds/score.mp3');
         setHitSound(hitSoundInstance);
@@ -32,123 +35,119 @@ const Pong: React.FC = () => {
     }, [paddleImage, backgroundImage, hitSound, scoreSound]);
 
     useEffect(() => {
-        if (!canvasRef.current || !isGameReady) return;
-
         const canvas = canvasRef.current;
+        if (!canvas || !isGameReady) return;
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
 
-        canvas.width = 800;
-        canvas.height = 400;
+        const canvasWidth = 800;
+        const canvasHeight = 400;
+        canvas.width = canvasWidth;
+        canvas.height = canvasHeight;
 
-        // Game variables
-        let ballX = canvas.width / 2;
-        let ballY = canvas.height / 2;
-        const ballSize = 10;
+        let ballX = canvasWidth / 2;
+        let ballY = canvasHeight / 2;
+        const ballSize = 8;
         let ballSpeedX = 3;
         let ballSpeedY = 3;
         const paddleWidth = 10;
-        const paddleHeight = 100;
-        let leftPaddleY = canvas.height / 2 - paddleHeight / 2;
-        let rightPaddleY = canvas.height / 2 - paddleHeight / 2;
+        const paddleHeight = 80;
+        let leftPaddleY = canvasHeight / 2 - paddleHeight / 2;
+        let rightPaddleY = canvasHeight / 2 - paddleHeight / 2;
 
-        // Draw net in the middle
         const drawNet = () => {
             ctx.fillStyle = 'white';
-            const netWidth = 4;
-            const netHeight = 20;
-            for (let i = 0; i < canvas.height; i += 30) {
-                ctx.fillRect(canvas.width / 2 - netWidth / 2, i, netWidth, netHeight);
+            for (let i = 0; i < canvasHeight; i += 20) {
+                ctx.fillRect(canvasWidth / 2 - 1, i, 2, 10);
             }
         };
 
-        const draw = () => {
-            if (!ctx) return;
-
-            // Draw background
+        const drawGame = () => {
             if (backgroundImage) {
-                ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
+                ctx.drawImage(backgroundImage, 0, 0, canvasWidth, canvasHeight);
             }
-
-            // Draw net
             drawNet();
 
-            // Draw ball
+            ctx.fillStyle = 'white';
             ctx.beginPath();
             ctx.arc(ballX, ballY, ballSize, 0, Math.PI * 2);
-            ctx.fillStyle = 'white';
             ctx.fill();
             ctx.closePath();
 
-            // Draw paddles
             if (paddleImage) {
                 ctx.drawImage(paddleImage, 20, leftPaddleY, paddleWidth, paddleHeight);
-                ctx.drawImage(paddleImage, canvas.width - 20 - paddleWidth, rightPaddleY, paddleWidth, paddleHeight);
+                ctx.drawImage(paddleImage, canvasWidth - 20 - paddleWidth, rightPaddleY, paddleWidth, paddleHeight);
             }
         };
 
-        const update = () => {
+        const updateGame = () => {
             ballX += ballSpeedX;
             ballY += ballSpeedY;
 
-            // Ball collision with top and bottom walls
-            if (ballY + ballSize > canvas.height || ballY - ballSize < 0) {
+            if (ballY + ballSize > canvasHeight || ballY - ballSize < 0) {
                 ballSpeedY = -ballSpeedY;
             }
 
-            // Ball collision with left paddle
-            if (ballX - ballSize < 30 && ballY > leftPaddleY && ballY < leftPaddleY + paddleHeight) {
+            if (
+                (ballX - ballSize < 20 + paddleWidth &&
+                    ballY > leftPaddleY &&
+                    ballY < leftPaddleY + paddleHeight) ||
+                (ballX + ballSize > canvasWidth - 20 - paddleWidth &&
+                    ballY > rightPaddleY &&
+                    ballY < rightPaddleY + paddleHeight)
+            ) {
                 ballSpeedX = -ballSpeedX;
-                if (hitSound) hitSound.play();
+                if (hitSound) {
+                    hitSound.currentTime = 0;
+                    hitSound.play();
+                }
             }
 
-            // Ball collision with right paddle (AI)
-            if (ballX + ballSize > canvas.width - 30 - paddleWidth && ballY > rightPaddleY && ballY < rightPaddleY + paddleHeight) {
-                ballSpeedX = -ballSpeedX;
-                if (hitSound) hitSound.play();
+            if (ballX + ballSize < 0 || ballX - ballSize > canvasWidth) {
+                ballX = canvasWidth / 2;
+                ballY = canvasHeight / 2;
+                ballSpeedX = 3 * (Math.random() > 0.5 ? 1 : -1);
+                ballSpeedY = 3 * (Math.random() > 0.5 ? 1 : -1);
+                if (scoreSound) {
+                    scoreSound.currentTime = 0;
+                    scoreSound.play();
+                }
             }
 
-            // Ball out of bounds
-            if (ballX - ballSize < 0 || ballX + ballSize > canvas.width) {
-                if (scoreSound) scoreSound.play();
-                ballX = canvas.width / 2;
-                ballY = canvas.height / 2;
-                ballSpeedX = -ballSpeedX;
-            }
-
-            // AI paddle movement (hard difficulty)
+            const aiSpeed = 2.5;
             if (rightPaddleY + paddleHeight / 2 < ballY) {
-                rightPaddleY += 3;
+                rightPaddleY += aiSpeed;
             } else {
-                rightPaddleY -= 3;
+                rightPaddleY -= aiSpeed;
             }
         };
 
         const gameLoop = () => {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            draw();
-            update();
+            ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+            drawGame();
+            updateGame();
             requestAnimationFrame(gameLoop);
         };
 
-        gameLoop();
-    }, [isGameReady, paddleImage, backgroundImage, hitSound, scoreSound]);
+        canvas.addEventListener('mousemove', (event) => {
+            const rect = canvas.getBoundingClientRect();
+            leftPaddleY = event.clientY - rect.top - paddleHeight / 2;
+            if (leftPaddleY < 0) leftPaddleY = 0;
+            if (leftPaddleY + paddleHeight > canvasHeight) leftPaddleY = canvasHeight - paddleHeight;
+        });
 
-    // Player paddle movement with mouse
-    const handleMouseMove = (event: React.MouseEvent<HTMLCanvasElement>) => {
-        if (!canvasRef.current) return;
-        const canvas = canvasRef.current;
-        const rect = canvas.getBoundingClientRect();
-        const mouseY = event.clientY - rect.top;
-        leftPaddleY = mouseY - paddleHeight / 2;
-    };
+        gameLoop();
+
+        return () => {
+            cancelAnimationFrame(gameLoop);
+        };
+    }, [isGameReady, paddleImage, backgroundImage, hitSound, scoreSound]);
 
     return (
         <canvas
             ref={canvasRef}
             className="border border-white"
             style={{ display: 'block', margin: '0 auto' }}
-            onMouseMove={handleMouseMove}
         />
     );
 };
