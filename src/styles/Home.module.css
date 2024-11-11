@@ -1,0 +1,33 @@
+.container {
+    min-height: 100vh; /* Ensures the container takes up at least the full height of the viewport */
+    display: flex; /* Enables flexbox layout */
+    flex-direction: column; /* Arranges children in a column */
+    align-items: center; /* Centers children horizontally */
+    justify-content: center; /* Centers children vertically */
+    padding: 0 2rem; /* Adds horizontal padding */
+    background-color: #282c34; /* Dark background color */
+    color: white; /* White text color */
+}
+
+.main {
+    display: flex; /* Enables flexbox layout */
+    flex-direction: column; /* Arranges children in a column */
+    align-items: center; /* Centers children horizontally */
+    justify-content: center; /* Centers children vertically */
+    flex: 1; /* Allows the main area to grow */
+    padding: 5rem 0; /* Adds vertical padding */
+}
+
+.title {
+    font-size: 4rem; /* Large font size for the title */
+    margin-bottom: 1rem; /* Space below the title */
+}
+
+.description {
+    font-size: 1.5rem; /* Medium font size for paragraphs */
+    margin-bottom: 2rem; /* Space below paragraphs */
+}
+
+.canvas {
+    border: 2px solid white; /* Adds a border around the canvas */
+}
