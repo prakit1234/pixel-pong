@@ -64,7 +64,7 @@ const Pong: React.FC = () => {
 
         const drawGame = () => {
             if (backgroundImage) {
-                ctx.drawImage(backgroundImage, 0, 0, canvasWidth, canvasHeight);
+                ctx.drawImage(backgroundImage as CanvasImageSource, 0, 0, canvasWidth, canvasHeight);
             }
             drawNet();
 
@@ -75,8 +75,8 @@ const Pong: React.FC = () => {
             ctx.closePath();
 
             if (paddleImage) {
-                ctx.drawImage(paddleImage, 20, leftPaddleY, paddleWidth, paddleHeight);
-                ctx.drawImage(paddleImage, canvasWidth - 20 - paddleWidth, rightPaddleY, paddleWidth, paddleHeight);
+                ctx.drawImage(paddleImage as CanvasImageSource, 20, leftPaddleY, paddleWidth, paddleHeight);
+                ctx.drawImage(paddleImage as CanvasImageSource, canvasWidth - 20 - paddleWidth, rightPaddleY, paddleWidth, paddleHeight);
             }
         };
 
@@ -122,11 +122,13 @@ const Pong: React.FC = () => {
             }
         };
 
+        let animationFrameId: number;
+        
         const gameLoop = () => {
             ctx.clearRect(0, 0, canvasWidth, canvasHeight);
             drawGame();
             updateGame();
-            requestAnimationFrame(gameLoop);
+            animationFrameId = requestAnimationFrame(gameLoop);
         };
 
         canvas.addEventListener('mousemove', (event) => {
@@ -139,7 +141,7 @@ const Pong: React.FC = () => {
         gameLoop();
 
         return () => {
-            cancelAnimationFrame(gameLoop);
+            cancelAnimationFrame(animationFrameId);
         };
     }, [isGameReady, paddleImage, backgroundImage, hitSound, scoreSound]);
 
