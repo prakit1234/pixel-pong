@@ -18,7 +18,7 @@ const Pong: React.FC = () => {
     };
 
     useEffect(() => {
-        let animationFrameId: number;
+        let animationFrameId: number | null = null;
 
         const setupGame = async () => {
             const paddleImage = await loadImage('/images/paddle.png');
@@ -123,13 +123,19 @@ const Pong: React.FC = () => {
             gameLoop();
 
             return () => {
-                cancelAnimationFrame(animationFrameId);
+                if (animationFrameId !== null) {
+                    cancelAnimationFrame(animationFrameId);
+                }
             };
         };
 
         setupGame();
 
-        return () => cancelAnimationFrame(animationFrameId);
+        return () => {
+            if (animationFrameId !== null) {
+                cancelAnimationFrame(animationFrameId);
+            }
+        };
     }, [isGameReady]);
 
     return (
